@@ -1,0 +1,36 @@
+# mcparr - self-hosted MCP gateway for the *arr ecosystem and Plex.
+#
+# Security notes:
+# - The config UI (7475) is published to localhost only by default; reach it via
+#   an SSH tunnel or a reverse proxy. It holds every service API key.
+# - The MCP endpoint (7474) always requires the bearer token shown in the UI.
+# - For Claude.ai / ChatGPT hosted connectors, put mcparr behind a TLS reverse
+#   proxy - those clients require HTTPS.
+
+services:
+  mcparr:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: ghcr.io/phillyurbs/mcparr:latest
+    container_name: mcparr
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7475:7475"   # config UI - localhost only
+      - "7474:7474"             # MCP endpoint - auth always enforced
+    volumes:
+      - mcparr_data:/data
+    environment:
+      MCPARR_HOST: "0.0.0.0"
+      # MCPARR_ADMIN_PASSWORD: "set-on-first-run-or-via-the-ui"
+      # MCPARR_MCP_TOKEN: "supply-your-own-or-let-mcparr-generate-one"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  mcparr_data:

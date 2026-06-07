@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Service") }}{% endblock %}
+{% block content %}
+<h1>{% if service %}{{ _("Edit service") }}{% else %}{{ _("Add service") }}{% endif %}</h1>
+
+<form method="post"
+      action="{% if service %}/services/{{ service.instance_id }}{% else %}/services{% endif %}"
+      class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+  {% if service %}
+  <label>{{ _("Type") }}
+    <input type="text" value="{{ service.service_type }}" disabled>
+  </label>
+  <label>{{ _("Slug (used in tool names)") }}
+    <input type="text" value="{{ service.slug }}" disabled>
+  </label>
+  {% else %}
+  <label>{{ _("Type") }}
+    <select name="service_type" required>
+      {% for t in service_types %}
+      <option value="{{ t }}">{{ t }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>{{ _("Slug (used in tool names)") }}
+    <input type="text" name="slug" required pattern="[a-z0-9]+"
+           placeholder="radarr" title="lowercase letters and numbers">
+  </label>
+  {% endif %}
+
+  <label>{{ _("Display name") }}
+    <input type="text" name="label" value="{{ service.label if service else '' }}">
+  </label>
+  <label>{{ _("Base URL") }}
+    <input type="url" name="base_url" required
+           value="{{ service.base_url if service else '' }}"
+           placeholder="http://localhost:7878">
+  </label>
+  <label>{{ _("API key") }}
+    <input type="password" name="api_key" autocomplete="off"
+           placeholder="{% if service %}{{ _("(unchanged)") }}{% endif %}"
+           {% if not service %}required{% endif %}>
+  </label>
+  <label>{{ _("Default quality profile") }}
+    <input type="text" name="default_quality_profile"
+           value="{{ service.default_quality_profile or '' if service else '' }}">
+  </label>
+  <label>{{ _("Default root folder") }}
+    <input type="text" name="default_root_folder"
+           value="{{ service.default_root_folder or '' if service else '' }}">
+  </label>
+  <label class="check">
+    <input type="checkbox" name="enabled" value="true"
+           {% if not service or service.enabled %}checked{% endif %}>
+    {{ _("Enabled") }}
+  </label>
+  <label class="check">
+    <input type="checkbox" name="expose_destructive" value="true"
+           {% if service and service.expose_destructive %}checked{% endif %}>
+    {{ _("Expose destructive tools (delete)") }}
+  </label>
+
+  <div class="row">
+    <button type="submit">{{ _("Save") }}</button>
+    <a class="button ghost" href="/">{{ _("Cancel") }}</a>
+  </div>
+</form>
+{% endblock %}

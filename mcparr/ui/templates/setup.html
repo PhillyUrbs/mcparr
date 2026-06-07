@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Set up mcparr") }}{% endblock %}
+{% block content %}
+<h1>{{ _("Welcome to mcparr") }}</h1>
+<p>{{ _("Create an admin password to protect the config UI.") }}</p>
+<form method="post" action="/setup" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>{{ _("Password") }}
+    <input type="password" name="password" autocomplete="new-password" required minlength="8">
+  </label>
+  <label>{{ _("Confirm password") }}
+    <input type="password" name="confirm" autocomplete="new-password" required minlength="8">
+  </label>
+  <button type="submit">{{ _("Create admin password") }}</button>
+</form>
+{% endblock %}

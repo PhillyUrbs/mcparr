@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}mcparr{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">mcparr</a>
+    <nav>
+      {% if authenticated %}
+      <a href="/">{{ _("Dashboard") }}</a>
+      <a href="/connect">{{ _("Connect") }}</a>
+      <a href="/password">{{ _("Password") }}</a>
+      <form class="inline" method="post" action="/logout">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="linklike">{{ _("Log out") }}</button>
+      </form>
+      {% endif %}
+      <form class="inline lang" method="get">
+        <select name="lang" onchange="this.form.submit()">
+          {% for loc in supported_locales %}
+          <option value="{{ loc }}" {% if loc == lang %}selected{% endif %}>{{ loc }}</option>
+          {% endfor %}
+        </select>
+      </form>
+    </nav>
+  </header>
+
+  <main class="container">
+    {% if error %}
+    <div class="alert error">{{ _(msg(error)) }}</div>
+    {% endif %}
+    {% if ok %}
+    <div class="alert ok">{{ _("Saved.") }}</div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <span>mcparr v{{ version }}</span>
+  </footer>
+</body>
+</html>

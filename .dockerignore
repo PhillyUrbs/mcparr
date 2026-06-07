@@ -1,0 +1,39 @@
+# Runtime data + secrets - never bake into the image
+
+data/
+/data/
+_.key
+_.db
+_.sqlite
+_.sqlite3
+mcp_token
+
+# VCS / CI
+
+.git/
+.github/
+.gitignore
+
+# Python caches
+
+**pycache**/
+\*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Tests + dev tooling not needed in the image
+
+tests/
+.pre-commit-config.yaml
+.devcontainer/
+
+# Docs
+
+docs/
+\*.md
+!README.md

@@ -1,0 +1,38 @@
+# mcparr optional seed file (decision #6).
+#
+# If present at /data/seed.yaml (or the path in MCPARR_SEED_FILE), mcparr creates
+# any service instances listed here that do not already exist on first boot. The
+# database stays the source of truth - existing instances are never overwritten,
+# so edits made in the UI always win.
+#
+# Copy to your data volume as seed.yaml and fill in real values, or just add
+# services through the web UI instead.
+
+services:
+  - service_type: radarr        # one of the registered service types
+    slug: radarr                # unique; used to namespace MCP tools (radarr_*)
+    label: Movies               # display name in the UI
+    base_url: http://radarr:7878
+    api_key: CHANGE_ME
+    enabled: true
+    expose_destructive: false   # set true to expose delete tools
+    default_quality_profile: HD-1080p
+    default_root_folder: /movies
+
+  - service_type: sonarr
+    slug: sonarr
+    label: TV
+    base_url: http://sonarr:8989
+    api_key: CHANGE_ME
+    enabled: true
+    expose_destructive: false
+    default_quality_profile: HD-1080p
+    default_root_folder: /tv
+
+  # A second Radarr instance (for example a 4K library) uses a distinct slug,
+  # which namespaces its tools as radarr4k_* alongside the first.
+  # - service_type: radarr
+  #   slug: radarr4k
+  #   label: Movies 4K
+  #   base_url: http://radarr-4k:7878
+  #   api_key: CHANGE_ME

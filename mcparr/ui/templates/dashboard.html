@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Dashboard") }}{% endblock %}
+{% block content %}
+<div class="row between">
+  <h1>{{ _("Services") }}</h1>
+  <a class="button" href="/services/new">{{ _("Add service") }}</a>
+</div>
+
+{% if test_result %}
+<div class="alert {{ 'ok' if test_result.ok else 'error' }}">
+  {{ _(msg(test_result.code)) }}{% if test_result.version %} - v{{ test_result.version }}{% endif %}
+</div>
+{% endif %}
+
+{% if not services %}
+<p class="muted">{{ _("No services configured yet.") }}</p>
+{% else %}
+<table class="grid">
+  <thead>
+    <tr>
+      <th>{{ _("Service") }}</th>
+      <th>{{ _("Type") }}</th>
+      <th>{{ _("URL") }}</th>
+      <th>{{ _("Status") }}</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in services %}
+    <tr>
+      <td><strong>{{ s.label or s.slug }}</strong><br><span class="muted">{{ s.slug }}</span></td>
+      <td>{{ s.service_type }}</td>
+      <td class="muted">{{ s.base_url }}</td>
+      <td>
+        {% if s.enabled %}
+          {% if s.instance_id in loaded %}
+          <span class="pill on">{{ _("Enabled") }}</span>
+          {% else %}
+          <span class="pill warn">{{ _("Enabled (not loaded)") }}</span>
+          {% endif %}
+        {% else %}
+        <span class="pill off">{{ _("Disabled") }}</span>
+        {% endif %}
+        {% if s.expose_destructive %}<span class="pill danger">{{ _("Destructive on") }}</span>{% endif %}
+      </td>
+      <td class="actions">
+        <form class="inline" method="post" action="/services/{{ s.instance_id }}/test">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit">{{ _("Test") }}</button>
+        </form>
+        <form class="inline" method="post" action="/services/{{ s.instance_id }}/toggle">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit">{{ _("Disable") if s.enabled else _("Enable") }}</button>
+        </form>
+        <a class="button" href="/services/{{ s.instance_id }}">{{ _("Edit") }}</a>
+        <form class="inline" method="post" action="/services/{{ s.instance_id }}/delete"
+              onsubmit="return confirm('{{ _("Delete this service?") }}')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button type="submit" class="danger">{{ _("Delete") }}</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Connect") }}{% endblock %}
+{% block content %}
+<h1>{{ _("Connect an AI client") }}</h1>
+<p>{{ _("Point your MCP client at the endpoint below using the bearer token.") }}</p>
+
+<div class="card">
+  <label>{{ _("MCP endpoint (Streamable HTTP)") }}
+    <input type="text" readonly value="{{ mcp_url }}" onclick="this.select()">
+  </label>
+  <label>{{ _("Bearer token") }}
+    <input type="text" readonly value="{{ token }}" onclick="this.select()">
+  </label>
+  {% if token_from_env %}
+  <p class="muted">{{ _("Token is set via MCPARR_MCP_TOKEN; rotation is disabled.") }}</p>
+  {% else %}
+  <form method="post" action="/connect/rotate"
+        onsubmit="return confirm('{{ _("Rotate the token? Existing clients will stop working.") }}')">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button type="submit" class="danger">{{ _("Rotate token") }}</button>
+  </form>
+  {% endif %}
+</div>
+
+<h2>{{ _("VS Code / GitHub Copilot") }}</h2>
+<pre class="snippet">{
+  "servers": {
+    "mcparr": {
+      "type": "http",
+      "url": "{{ mcp_url }}",
+      "headers": { "Authorization": "Bearer {{ token }}" }
+    }
+  }
+}</pre>
+
+<h2>{{ _("Claude Desktop (via mcp-remote)") }}</h2>
+<pre class="snippet">{
+  "mcpServers": {
+    "mcparr": {
+      "command": "npx",
+      "args": ["mcp-remote", "{{ mcp_url }}", "--header", "Authorization: Bearer {{ token }}"]
+    }
+  }
+}</pre>
+
+<p class="muted">{{ _("Hosted connectors (Claude.ai, ChatGPT) generally require HTTPS; put mcparr behind a TLS reverse proxy.") }}</p>
+{% endblock %}

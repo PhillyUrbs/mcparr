@@ -1,0 +1,19 @@
+name: Feature request
+description: Suggest an idea or a new service integration
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+  - type: input
+    id: service
+    attributes:
+      label: Service (if requesting an integration)
+      placeholder: "Lidarr, Prowlarr, Overseerr, ..."

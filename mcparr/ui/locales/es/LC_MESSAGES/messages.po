@@ -1,0 +1,94 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: mcparr\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Dashboard"
+msgstr "Panel"
+
+msgid "Connect"
+msgstr "Conectar"
+
+msgid "Password"
+msgstr "Contrasena"
+
+msgid "Log out"
+msgstr "Cerrar sesion"
+
+msgid "Log in"
+msgstr "Iniciar sesion"
+
+msgid "Services"
+msgstr "Servicios"
+
+msgid "Add service"
+msgstr "Anadir servicio"
+
+msgid "Edit service"
+msgstr "Editar servicio"
+
+msgid "No services configured yet."
+msgstr "Aun no hay servicios configurados."
+
+msgid "Service"
+msgstr "Servicio"
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "Status"
+msgstr "Estado"
+
+msgid "Enabled"
+msgstr "Activado"
+
+msgid "Disabled"
+msgstr "Desactivado"
+
+msgid "Test"
+msgstr "Probar"
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Base URL"
+msgstr "URL base"
+
+msgid "API key"
+msgstr "Clave de API"
+
+msgid "Connect an AI client"
+msgstr "Conectar un cliente de IA"
+
+msgid "Bearer token"
+msgstr "Token de portador"
+
+msgid "Rotate token"
+msgstr "Rotar token"
+
+msgid "Welcome to mcparr"
+msgstr "Bienvenido a mcparr"
+
+msgid "Incorrect password"
+msgstr "Contrasena incorrecta"
+
+msgid "Service unreachable"
+msgstr "Servicio inaccesible"
+
+msgid "Connected"
+msgstr "Conectado"
