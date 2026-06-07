@@ -1,7 +1,7 @@
 # mcparr container image.
 # Editable install keeps template/static/locale package data resolvable via
 # __file__, and lets us compile translation catalogs in place at build time.
-FROM python:3.12-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
