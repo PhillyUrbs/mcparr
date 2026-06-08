@@ -9,9 +9,6 @@
 
 services:
   mcparr:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
     image: ghcr.io/phillyurbs/mcparr:latest
     container_name: mcparr
     restart: unless-stopped
