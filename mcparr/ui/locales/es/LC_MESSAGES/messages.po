@@ -92,3 +92,22 @@ msgstr "Servicio inaccesible"
 
 msgid "Connected"
 msgstr "Conectado"
+
+msgid "Test connection"
+msgstr "Probar conexion"
+
+msgid "Testing..."
+msgstr "Probando..."
+
+msgid "Test failed"
+msgstr "La prueba fallo"
+
+msgid "(none)"
+msgstr "(ninguno)"
+
+msgid "Default quality profile"
+msgstr "Perfil de calidad predeterminado"
+
+msgid "Default root folder"
+msgstr "Carpeta raiz predeterminada"
+

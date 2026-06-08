@@ -13,7 +13,7 @@ services:
     container_name: mcparr
     restart: unless-stopped
     ports:
-      - "127.0.0.1:7475:7475"   # config UI - localhost only
+      - "7475:7475"             # config UI - localhost only
       - "7474:7474"             # MCP endpoint - auth always enforced
     volumes:
       - mcparr_data:/data

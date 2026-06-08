@@ -14,13 +14,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 from .. import __version__
-from ..config import Database
+from ..config import Database, InstanceConfig
 from ..health import add_health_routes
 from ..logging import AuditLog
 from ..service_manager import ServiceManager
@@ -332,6 +332,56 @@ def create_ui_app(
                 "code": result.code,
                 "version": result.version,
             },
+        )
+
+    @app.post("/services/test-connection", response_model=None)
+    async def test_connection(
+        request: Request,
+        base_url: str = Form(...),
+        service_type: str = Form(""),
+        api_key: str = Form(""),
+        instance_id: str = Form(""),
+        _: None = Depends(sec.require_login),
+        _csrf: None = Depends(sec.verify_csrf),
+    ) -> JSONResponse:
+        resolved_type = service_type.strip()
+        resolved_key = api_key
+        if instance_id:
+            row = db.get_service(instance_id)
+            if row is None:
+                return JSONResponse({"ok": False, "code": "error.not_found"})
+            resolved_type = row.service_type
+            if not resolved_key:
+                resolved_key = db.to_instance_config(row).api_key
+        cfg = InstanceConfig(
+            instance_id=instance_id or "probe",
+            service_type=resolved_type,
+            slug="probe",
+            label="probe",
+            base_url=base_url.strip(),
+            api_key=resolved_key,
+            enabled=False,
+            expose_destructive=False,
+        )
+        result, profiles, folders = await manager.probe_connection(cfg)
+        lang = resolve_locale(
+            query=request.query_params.get("lang"),
+            cookie=request.cookies.get(LOCALE_COOKIE),
+            accept_language=request.headers.get("accept-language"),
+            default=db.get_language(),
+        )
+        translate = get_translator(lang)
+        return JSONResponse(
+            {
+                "ok": result.ok,
+                "code": result.code,
+                "message": translate(message_for(result.code)),
+                "version": result.version,
+                "quality_profiles": [
+                    {"id": p.get("id"), "name": p.get("name")} for p in profiles
+                ],
+                "root_folders": [{"path": f.get("path")} for f in folders],
+            }
         )
 
     # ------------------------------------------------------------------ #

@@ -44,20 +44,22 @@
         {% if s.expose_destructive %}<span class="pill danger">{{ _("Destructive on") }}</span>{% endif %}
       </td>
       <td class="actions">
-        <form class="inline" method="post" action="/services/{{ s.instance_id }}/test">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-          <button type="submit">{{ _("Test") }}</button>
-        </form>
-        <form class="inline" method="post" action="/services/{{ s.instance_id }}/toggle">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-          <button type="submit">{{ _("Disable") if s.enabled else _("Enable") }}</button>
-        </form>
-        <a class="button" href="/services/{{ s.instance_id }}">{{ _("Edit") }}</a>
-        <form class="inline" method="post" action="/services/{{ s.instance_id }}/delete"
-              onsubmit="return confirm('{{ _("Delete this service?") }}')">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-          <button type="submit" class="danger">{{ _("Delete") }}</button>
-        </form>
+        <div class="row-actions">
+          <form class="inline" method="post" action="/services/{{ s.instance_id }}/test">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit">{{ _("Test") }}</button>
+          </form>
+          <form class="inline" method="post" action="/services/{{ s.instance_id }}/toggle">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit">{{ _("Disable") if s.enabled else _("Enable") }}</button>
+          </form>
+          <a class="button" href="/services/{{ s.instance_id }}">{{ _("Edit") }}</a>
+          <form class="inline" method="post" action="/services/{{ s.instance_id }}/delete"
+                onsubmit="return confirm('{{ _("Delete this service?") }}')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="danger">{{ _("Delete") }}</button>
+          </form>
+        </div>
       </td>
     </tr>
     {% endfor %}

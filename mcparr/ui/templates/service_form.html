@@ -7,6 +7,7 @@
       action="{% if service %}/services/{{ service.instance_id }}{% else %}/services{% endif %}"
       class="card">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  {% if service %}<input type="hidden" id="instance-id" value="{{ service.instance_id }}">{% endif %}
 
   {% if service %}
   <label>{{ _("Type") }}
@@ -42,13 +43,29 @@
            placeholder="{% if service %}{{ _("(unchanged)") }}{% endif %}"
            {% if not service %}required{% endif %}>
   </label>
+
+  <div class="row">
+    <button type="button" id="test-btn" class="ghost">{{ _("Test connection") }}</button>
+    <span id="test-status" class="muted"></span>
+  </div>
+
   <label>{{ _("Default quality profile") }}
-    <input type="text" name="default_quality_profile"
-           value="{{ service.default_quality_profile or '' if service else '' }}">
+    <select name="default_quality_profile" id="quality-profile"
+            data-current="{{ service.default_quality_profile or '' if service else '' }}">
+      <option value="">{{ _("(none)") }}</option>
+      {% if service and service.default_quality_profile %}
+      <option value="{{ service.default_quality_profile }}" selected>{{ service.default_quality_profile }}</option>
+      {% endif %}
+    </select>
   </label>
   <label>{{ _("Default root folder") }}
-    <input type="text" name="default_root_folder"
-           value="{{ service.default_root_folder or '' if service else '' }}">
+    <select name="default_root_folder" id="root-folder"
+            data-current="{{ service.default_root_folder or '' if service else '' }}">
+      <option value="">{{ _("(none)") }}</option>
+      {% if service and service.default_root_folder %}
+      <option value="{{ service.default_root_folder }}" selected>{{ service.default_root_folder }}</option>
+      {% endif %}
+    </select>
   </label>
   <label class="check">
     <input type="checkbox" name="enabled" value="true"
@@ -66,4 +83,74 @@
     <a class="button ghost" href="/">{{ _("Cancel") }}</a>
   </div>
 </form>
+
+<script>
+(function () {
+  const btn = document.getElementById("test-btn");
+  if (!btn) return;
+  const form = btn.closest("form");
+  const statusEl = document.getElementById("test-status");
+
+  function populate(sel, options) {
+    if (!sel) return;
+    const current = sel.dataset.current || sel.value;
+    sel.innerHTML = "";
+    const none = document.createElement("option");
+    none.value = "";
+    none.textContent = {{ _("(none)") | tojson }};
+    sel.appendChild(none);
+    let matched = false;
+    options.forEach(function (value) {
+      if (!value) return;
+      const opt = document.createElement("option");
+      opt.value = value;
+      opt.textContent = value;
+      if (value === current) { opt.selected = true; matched = true; }
+      sel.appendChild(opt);
+    });
+    if (!matched && current) {
+      const opt = document.createElement("option");
+      opt.value = current;
+      opt.textContent = current;
+      opt.selected = true;
+      sel.appendChild(opt);
+    }
+  }
+
+  btn.addEventListener("click", async function () {
+    statusEl.className = "muted";
+    statusEl.textContent = {{ _("Testing...") | tojson }};
+    const fd = new FormData();
+    fd.append("csrf_token", form.querySelector("[name=csrf_token]").value);
+    fd.append("base_url", form.querySelector("[name=base_url]").value);
+    const apiKeyEl = form.querySelector("[name=api_key]");
+    if (apiKeyEl) fd.append("api_key", apiKeyEl.value);
+    const typeEl = form.querySelector("[name=service_type]");
+    if (typeEl) fd.append("service_type", typeEl.value);
+    const idEl = document.getElementById("instance-id");
+    if (idEl) fd.append("instance_id", idEl.value);
+    btn.disabled = true;
+    try {
+      const resp = await fetch("/services/test-connection", { method: "POST", body: fd });
+      const data = await resp.json();
+      if (data.ok) {
+        statusEl.className = "ok-text";
+        statusEl.textContent = data.message + (data.version ? " - v" + data.version : "");
+        populate(document.getElementById("quality-profile"),
+          (data.quality_profiles || []).map(function (p) { return p.name; }));
+        populate(document.getElementById("root-folder"),
+          (data.root_folders || []).map(function (f) { return f.path; }));
+      } else {
+        statusEl.className = "error-text";
+        statusEl.textContent = data.message || data.code;
+      }
+    } catch (e) {
+      statusEl.className = "error-text";
+      statusEl.textContent = {{ _("Test failed") | tojson }};
+    } finally {
+      btn.disabled = false;
+    }
+  });
+})();
+</script>
 {% endblock %}

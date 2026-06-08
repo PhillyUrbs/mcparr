@@ -79,7 +79,9 @@ button, .button {
   border: none;
   border-radius: 6px;
   padding: 0.45rem 0.8rem;
+  font-family: inherit;
   font-size: 0.9rem;
+  line-height: 1.2;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
@@ -92,14 +94,19 @@ button.danger, .button.danger, button.linklike.danger { background: var(--danger
 .inline.lang select { padding: 0.2rem 0.4rem; }
 
 .grid { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-.grid th, .grid td { text-align: left; padding: 0.6rem 0.5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
-.grid .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.grid th, .grid td { text-align: left; padding: 0.6rem 0.5rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.grid td.actions { white-space: nowrap; }
+.grid .actions .row-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+.grid .actions form { display: flex; }
 
 .pill { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; }
 .pill.on { background: rgba(63,185,80,0.15); color: var(--ok); }
 .pill.off { background: rgba(154,163,178,0.15); color: var(--muted); }
 .pill.warn { background: rgba(210,153,34,0.15); color: var(--warn); }
 .pill.danger { background: rgba(248,81,73,0.15); color: var(--danger); }
+
+.ok-text { color: var(--ok); }
+.error-text { color: var(--danger); }
 
 .alert { padding: 0.7rem 0.9rem; border-radius: 6px; margin-bottom: 1rem; }
 .alert.error { background: rgba(248,81,73,0.12); color: var(--danger); border: 1px solid rgba(248,81,73,0.3); }

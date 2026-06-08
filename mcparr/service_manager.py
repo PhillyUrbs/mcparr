@@ -16,16 +16,32 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from fastmcp import FastMCP
 from fastmcp.tools import Tool
 from mcp.types import ToolAnnotations
 
 from .config import Database, InstanceConfig
+from .errors import McparrError
 from .logging import AuditLog
 from .services.base import ConnectionResult, ServiceModule, ToolSpec, get_module_class
 
 logger = logging.getLogger("mcparr.service_manager")
+
+
+async def _safe_list(
+    lister: Callable[[], Awaitable[list[dict[str, Any]]]] | None,
+) -> list[dict[str, Any]]:
+    """Call an optional discovery method, swallowing errors into an empty list."""
+    if lister is None:
+        return []
+    try:
+        return await lister()
+    except Exception:  # noqa: BLE001 - discovery is best-effort for the UI
+        return []
+
 
 
 class ServiceManager:
@@ -84,6 +100,34 @@ class ServiceManager:
             return ConnectionResult(ok=False, code="error.service_unreachable")
         finally:
             await module.aclose()
+
+    async def probe_connection(
+        self, cfg: InstanceConfig
+    ) -> tuple[ConnectionResult, list[dict], list[dict]]:
+        """Test an arbitrary config and, on success, return its discovery lists.
+
+        Used by the add/edit form to verify settings and populate the quality
+        profile and root folder pickers before the instance is saved.
+        """
+        module_cls = get_module_class(cfg.service_type)
+        if module_cls is None:
+            return ConnectionResult(ok=False, code="error.unknown_service_type"), [], []
+        try:
+            module = module_cls(cfg)
+        except McparrError as exc:
+            return ConnectionResult(ok=False, code=exc.code), [], []
+        except Exception:  # noqa: BLE001 - bad config must not crash the request
+            return ConnectionResult(ok=False, code="error.config"), [], []
+        try:
+            result = await module.test_connection()
+            if not result.ok:
+                return result, [], []
+            profiles = await _safe_list(getattr(module, "list_quality_profiles", None))
+            folders = await _safe_list(getattr(module, "list_root_folders", None))
+            return result, profiles, folders
+        finally:
+            await module.aclose()
+
 
     # -- internals -------------------------------------------------------- #
 
