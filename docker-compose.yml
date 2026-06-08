@@ -9,6 +9,11 @@
 
 services:
   mcparr:
+    # Release channels (pick the tag that matches how stable you want to be):
+    #   :latest - newest stable release (recommended)
+    #   :beta   - newest pre-release; preview fixes before they ship to :latest
+    #   :dev    - built from every merge to main; bleeding edge, may be broken
+    # Pin to an exact version (e.g. :0.1.1) for fully reproducible deployments.
     image: ghcr.io/phillyurbs/mcparr:latest
     container_name: mcparr
     restart: unless-stopped

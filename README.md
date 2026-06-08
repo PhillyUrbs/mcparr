@@ -58,6 +58,21 @@ For Claude Desktop, use the `mcp-remote` bridge (snippet on the Connect page).
 Hosted connectors (Claude.ai, ChatGPT) require HTTPS - put mcparr behind a TLS
 reverse proxy.
 
+## Release channels
+
+The image is published to GHCR under three rolling tags. Set `image:` in
+[docker-compose.yml](docker-compose.yml) to the channel you want:
+
+| Tag       | Tracks                                | Use it when                                 |
+| --------- | ------------------------------------- | ------------------------------------------- |
+| `:latest` | Newest stable release                 | Default. You want tested, stable builds.    |
+| `:beta`   | Newest pre-release                    | You want to preview fixes before `:latest`. |
+| `:dev`    | Every merge to `main` (bleeding edge) | You are testing unreleased work; may break. |
+
+For reproducible deployments, pin an exact version instead - for example
+`ghcr.io/phillyurbs/mcparr:0.1.1`. Stable releases also publish the moving
+`:0`, `:0.1` major/minor tags.
+
 ## Configuration
 
 All state lives in the `/data` volume (SQLite database, encryption key, MCP
@@ -95,6 +110,36 @@ python -m mcparr.main   # runs both servers locally
 
 Translations are managed with Babel (`babel.cfg`); compile catalogs with
 `pybabel compile -d mcparr/ui/locales -D messages`.
+
+### Branch workflow
+
+Work on a short-lived branch and open a pull request into `main`; CI runs on the
+PR. No `:dev` image is built from branch pushes, so committing early and often is
+harmless. Merging the PR into `main` produces one `:dev` build (squash-merge
+keeps history tidy). Add `[skip ci]` to a commit message to skip workflows for
+that commit, and docs-only changes (Markdown, `docs/`, `LICENSE`) never trigger
+an image build.
+
+### Cutting a release
+
+Releases are version-free for you: the **Release** workflow computes the next
+version, tags the commit, and builds the channel image.
+
+1. Open the **Actions** tab (or the GitHub Actions panel in VS Code) and run the
+   **Release** workflow.
+2. Pick a **channel** (`beta` or `stable`) and a **bump** (`auto` by default).
+3. The workflow tags the commit and publishes the image.
+
+With `bump = auto`:
+
+- **beta** patch-bumps the latest stable and starts/continues a `-beta.N`
+  series - `v0.1.0` -> `v0.1.1-beta.1` -> `v0.1.1-beta.2` -> ...
+- **stable** promotes an in-flight beta (`v0.1.1-beta.2` -> `v0.1.1`), or patch-
+  bumps if no beta is pending.
+
+Use `bump = minor` or `major` to override the base when a release is bigger than
+a patch. The version math lives in [scripts/next_version.py](scripts/next_version.py)
+and is covered by [tests/test_next_version.py](tests/test_next_version.py).
 
 ## Adding a service
 

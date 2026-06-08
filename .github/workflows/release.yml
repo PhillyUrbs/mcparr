@@ -1,0 +1,120 @@
+name: Release
+
+# Cuts a beta or stable release: computes the next version, tags the commit, and
+# builds + pushes the channel image. You never type a version number - pick a
+# channel (and optionally a bump) and run the workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Release channel"
+        type: choice
+        options: [beta, stable]
+        required: true
+      bump:
+        description: "Version bump (auto = patch for beta / promote-or-patch for stable)"
+        type: choice
+        options: [auto, patch, minor, major]
+        default: auto
+        required: true
+
+permissions:
+  contents: write # create + push the tag and the GitHub Release
+  packages: write # push the image to GHCR
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need every tag to compute the next version
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Compute next version
+        id: version
+        run: |
+          VERSION="$(python scripts/next_version.py --channel '${{ inputs.channel }}' --bump '${{ inputs.bump }}')"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # PEP 440 form for the Python package version (v0.1.1-beta.1 -> 0.1.1b1).
+          echo "pep440=$(echo "$VERSION" | sed 's/^v//; s/-beta\./b/')" >> "$GITHUB_OUTPUT"
+          echo "Next version: $VERSION"
+
+      - name: Create and push tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION already exists" >&2
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$VERSION" -m "Release $VERSION"
+          git push origin "$VERSION"
+
+      - name: Compute image tags
+        id: tags
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          CHANNEL: ${{ inputs.channel }}
+        run: |
+          IMG="${REGISTRY}/${IMAGE_NAME,,}"
+          SEMVER="${VERSION#v}"
+          {
+            echo "tags<<EOF"
+            if [ "$CHANNEL" = "beta" ]; then
+              echo "${IMG}:beta"
+              echo "${IMG}:${SEMVER}"
+            else
+              MAJOR="${SEMVER%%.*}"
+              MINOR="${SEMVER%.*}"
+              echo "${IMG}:latest"
+              echo "${IMG}:${SEMVER}"
+              echo "${IMG}:${MINOR}"
+              echo "${IMG}:${MAJOR}"
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          build-args: |
+            MCPARR_VERSION=${{ steps.version.outputs.pep440 }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Create GitHub Release
+        if: inputs.channel == 'stable'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          generate_release_notes: true

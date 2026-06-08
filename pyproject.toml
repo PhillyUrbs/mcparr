@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -46,7 +46,11 @@ Homepage = "https://github.com/PhillyUrbs/mcparr"
 Repository = "https://github.com/PhillyUrbs/mcparr"
 
 [tool.hatch.version]
-path = "mcparr/__init__.py"
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+# Untagged commits resolve to a guess-next dev version (e.g. 0.1.1.dev3+g<sha>).
+version_scheme = "guess-next-dev"
 
 [tool.hatch.build.targets.wheel]
 packages = ["mcparr"]

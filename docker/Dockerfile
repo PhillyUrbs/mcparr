@@ -13,11 +13,15 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
+# Version is supplied by CI (see .github/workflows). hatch-vcs reads this instead
+# of probing git, so the image needs no .git directory to know its own version.
+ARG MCPARR_VERSION=0.0.0
+
 # Dependency/build metadata first for better layer caching.
 COPY pyproject.toml README.md LICENSE babel.cfg ./
 COPY mcparr ./mcparr
 
-RUN pip install --no-cache-dir -e . \
+RUN SETUPTOOLS_SCM_PRETEND_VERSION="${MCPARR_VERSION}" pip install --no-cache-dir -e . \
     && pybabel compile -d mcparr/ui/locales -D messages \
     && useradd -u 10001 -r -s /usr/sbin/nologin mcparr \
     && mkdir -p /data \
